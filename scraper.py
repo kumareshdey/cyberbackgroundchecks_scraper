@@ -97,11 +97,11 @@ class Cyberbackgroundchecks:
                 final_email.append(email)
         return final_email
     
-    @retry(max_retry_count=2, interval_sec=10)
     def cyberbackgroundchecks_manager(self):
         url = self.generate_url()
-        response = proxied_request(url)
-        if not response.status_code == 200:
+        try:
+            response = proxied_request(url)
+        except:
             self.log.info(f"Could not find the page. Trying with first name and last name only.")
             response = proxied_request(f"""{self.base_url}/people/{self.first_name.split(' ')[0].lower()}-{self.last_name.split(' ')[-1].lower()}""")
         self.log.info(f"Got response: {response.status_code}")
@@ -121,11 +121,11 @@ class Cyberbackgroundchecks:
         return emails
 
 def process_row(row, result_excel_file_path, log: logging):
+    rows = []
     try:
         log.info(f"Scraping for:\n{row}")
         usps = Usps(zip=row["ZIP"], log=log)
         cities = usps.get_city_from_zipcode()
-        rows = []
         for city in cities:
             city = city.split(" ")
             city, dist = ' '.join(city[:-1]), city[-1]
@@ -140,15 +140,15 @@ def process_row(row, result_excel_file_path, log: logging):
             )
             emails = cyberbackgroundchecks.cyberbackgroundchecks_manager()
             new_row = {
-            "FIRST_NAME": row["FIRST_NAME"],
-            "LAST_NAME": row["LAST_NAME"],
-            "STREET": row["STREET"],
-            "CITY": city,
-            "DIST": dist,
-            "ZIP": row["ZIP"],
-            "EMAIL": emails,
-            "STATUS": 'SUCCESS'
-        }
+                "FIRST_NAME": row["FIRST_NAME"],
+                "LAST_NAME": row["LAST_NAME"],
+                "STREET": row["STREET"],
+                "CITY": city,
+                "DIST": dist,
+                "ZIP": row["ZIP"],
+                "EMAIL": emails,
+                "STATUS": 'SUCCESS'
+            }
             rows.append(new_row)
     except Exception as e:
         try:

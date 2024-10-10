@@ -42,7 +42,7 @@ def retry(max_retry_count, interval_sec):
                         log.info(f'Retrying {func.__name__} in {interval_sec} seconds...')
                         time.sleep(interval_sec)
             log.warning(f'{func.__name__} reached maximum retry count of {max_retry_count}.')
-            return None
+            raise Exception(str(e))
         return wrapper
     return decorator
 
@@ -66,10 +66,10 @@ def proxied_request(url, render_js=False, without_proxy=False):
             'render_js': render_js
         },
     )
-    # if response.status_code in [200, 201]:
-    return response
-    # else:
-    #     raise Exception(f'Proxied request failed. {response.status_code}. {response.text}')
+    if response.status_code in [200, 201]:
+        return response
+    else:
+        raise Exception(f'Proxied request failed. {response.status_code}. {response.text}')
 
 class DummyRequest:
     def __init__(self, text="", status_code=200):
