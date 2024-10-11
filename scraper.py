@@ -27,7 +27,7 @@ class Usps:
         return unique_cities
 
 
-    @retry(max_retry_count=4, interval_sec=10)
+    @retry(tries=4, delay=10)
     def get_city_from_zipcode(self):
         self.log.info(f"Fetching city of zipcode = {self.zip}")
         with get_driver() as driver:
